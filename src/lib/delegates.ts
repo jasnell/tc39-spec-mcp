@@ -91,3 +91,76 @@ export async function lookupDelegate(query: string): Promise<Delegate[]> {
 export async function listDelegates(): Promise<Delegate[]> {
   return fetchDelegates();
 }
+
+/**
+ * Format a delegate in the canonical display format: "Full Name (TLA)".
+ */
+export function formatDelegate(delegate: Delegate): string {
+  return `${delegate.name} (${delegate.tla})`;
+}
+
+/**
+ * Resolve a presenter string to canonical "Full Name (TLA)" format.
+ *
+ * Handles common patterns found in meeting notes and agendas:
+ * - Already canonical: "Kevin Gibbons (KG)" → returned as-is
+ * - Name only: "Kevin Gibbons" → resolved to "Kevin Gibbons (KG)"
+ * - TLA only: "KG" → resolved to "Kevin Gibbons (KG)"
+ * - Comma-separated list: "KG, JHD" → each resolved individually
+ *
+ * If resolution fails for a name, the original text is kept unchanged.
+ */
+export async function resolvePresenter(presenter: string): Promise<string> {
+  if (!presenter || !presenter.trim()) return presenter;
+
+  // Already in "Name (TLA)" format? Return as-is.
+  if (/^.+\s+\([A-Z]{2,4}\)$/.test(presenter.trim())) {
+    return presenter.trim();
+  }
+
+  // Handle comma-separated lists (e.g., "KG, JHD" or "Kevin Gibbons, Jordan Harband")
+  if (presenter.includes(",")) {
+    const parts = presenter.split(",").map((p) => p.trim());
+    const resolved = await Promise.all(parts.map((p) => resolveSingle(p)));
+    return resolved.join(", ");
+  }
+
+  // Handle " and "-separated lists (e.g., "KG and JHD")
+  if (/\band\b/i.test(presenter)) {
+    const parts = presenter.split(/\band\b/i).map((p) => p.trim());
+    const resolved = await Promise.all(parts.map((p) => resolveSingle(p)));
+    return resolved.join(" and ");
+  }
+
+  return resolveSingle(presenter);
+}
+
+/**
+ * Resolve a single presenter name/TLA to "Full Name (TLA)" format.
+ */
+async function resolveSingle(input: string): Promise<string> {
+  const trimmed = input.trim();
+  if (!trimmed) return trimmed;
+
+  // Already canonical
+  if (/^.+\s+\([A-Z]{2,4}\)$/.test(trimmed)) return trimmed;
+
+  const matches = await lookupDelegate(trimmed);
+  if (matches.length === 1) {
+    return formatDelegate(matches[0]);
+  }
+
+  // If exact TLA or name matched multiple (unlikely), take the first
+  if (matches.length > 1) {
+    // Check for exact match first
+    const exact = matches.find(
+      (d) =>
+        d.tla.toLowerCase() === trimmed.toLowerCase() ||
+        d.name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (exact) return formatDelegate(exact);
+  }
+
+  // Unresolvable — return as-is
+  return trimmed;
+}

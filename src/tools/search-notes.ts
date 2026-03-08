@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { searchMeetingNotes } from "../lib/notes-index.js";
+import { resolvePresenter } from "../lib/delegates.js";
 
 export const searchNotesSchema = {
   query: z
@@ -60,12 +61,19 @@ export function registerSearchNotes(server: McpServer) {
           };
         }
 
-        const sections = results.map((section) => {
+        // Resolve all presenter names to canonical format in parallel
+        const resolvedPresenters = await Promise.all(
+          results.map((s) =>
+            s.presenter ? resolvePresenter(s.presenter) : Promise.resolve(undefined),
+          ),
+        );
+
+        const sections = results.map((section, i) => {
           const parts: string[] = [];
           parts.push(`### ${section.heading}`);
           parts.push(`**Meeting**: ${section.date} (${section.meeting})`);
-          if (section.presenter) {
-            parts.push(`**Presenter**: ${section.presenter}`);
+          if (resolvedPresenters[i]) {
+            parts.push(`**Presenter**: ${resolvedPresenters[i]}`);
           }
           if (section.proposalUrl) {
             parts.push(`**Proposal**: ${section.proposalUrl}`);

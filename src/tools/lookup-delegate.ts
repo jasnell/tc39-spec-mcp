@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { lookupDelegate } from "../lib/delegates.js";
+import { lookupDelegate, formatDelegate } from "../lib/delegates.js";
 
 export const lookupDelegateSchema = {
   query: z
@@ -40,12 +40,12 @@ export function registerLookupDelegate(server: McpServer) {
         }
 
         const lines = matches.map(
-          (d) => `- **${d.name}** (${d.tla})`,
+          (d) => `- ${formatDelegate(d)}`,
         );
 
         const text =
           matches.length === 1
-            ? `Found delegate: **${matches[0].name}** (${matches[0].tla})`
+            ? `Found delegate: ${formatDelegate(matches[0])}`
             : `Found ${matches.length} matching delegate(s) for "${query}":\n\n` +
               lines.join("\n");
 

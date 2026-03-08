@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getAgenda } from "../lib/agenda-parser.js";
+import { resolvePresenter } from "../lib/delegates.js";
 
 export const getAgendaSchema = {
   meeting: z
@@ -28,6 +29,29 @@ export function registerGetAgenda(server: McpServer) {
     async ({ meeting }) => {
       try {
         const agenda = await getAgenda(meeting);
+
+        // Collect all unique presenter strings and resolve them in parallel
+        const allPresenters = new Set<string>();
+        for (const p of agenda.proposals) {
+          if (p.presenter) allPresenters.add(p.presenter);
+        }
+        for (const d of agenda.shortDiscussions) {
+          if (d.presenter) allPresenters.add(d.presenter);
+        }
+        for (const d of agenda.longDiscussions) {
+          if (d.presenter) allPresenters.add(d.presenter);
+        }
+
+        const presenterEntries = [...allPresenters];
+        const resolved = await Promise.all(
+          presenterEntries.map((p) => resolvePresenter(p)),
+        );
+        const presenterMap = new Map<string, string>();
+        for (let i = 0; i < presenterEntries.length; i++) {
+          presenterMap.set(presenterEntries[i], resolved[i]);
+        }
+        const rp = (name: string) => presenterMap.get(name) ?? name;
+
         const parts: string[] = [];
 
         // Meeting header
@@ -62,7 +86,7 @@ export function registerGetAgenda(server: McpServer) {
             const emoji = p.emoji ? `${p.emoji} ` : "";
 
             parts.push(
-              `| ${p.stage} | ${p.timebox} | ${emoji}${name}${materials} | ${p.advancement || "—"} | ${p.presenter} |`,
+              `| ${p.stage} | ${p.timebox} | ${emoji}${name}${materials} | ${p.advancement || "—"} | ${rp(p.presenter)} |`,
             );
           }
           parts.push("");
@@ -75,7 +99,7 @@ export function registerGetAgenda(server: McpServer) {
           parts.push("|:----:|-------|-----------|");
           for (const d of agenda.shortDiscussions) {
             parts.push(
-              `| ${d.timebox} | ${d.topic} | ${d.presenter} |`,
+              `| ${d.timebox} | ${d.topic} | ${rp(d.presenter)} |`,
             );
           }
           parts.push("");
@@ -88,7 +112,7 @@ export function registerGetAgenda(server: McpServer) {
           parts.push("|:----:|-------|-----------|");
           for (const d of agenda.longDiscussions) {
             parts.push(
-              `| ${d.timebox} | ${d.topic} | ${d.presenter} |`,
+              `| ${d.timebox} | ${d.topic} | ${rp(d.presenter)} |`,
             );
           }
           parts.push("");
