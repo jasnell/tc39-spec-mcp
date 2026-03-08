@@ -383,11 +383,10 @@ export async function getAgenda(
   const meeting = parseMeetingInfo(raw, id);
 
   // Find and parse the Proposals section.
-  // Capture everything after "N. Proposals" until the next top-level numbered item.
-  // Note: /m makes ^ match start-of-line, but also makes $ match end-of-line,
-  // so we must NOT use $ as a fallback — it would match immediately with [\s\S]*?.
+  // The heading is exactly "N. Proposals" on its own line (not "N. Proposals not looking..."
+  // from the rules section). Use [ \t]* instead of \s* to avoid matching across newlines.
   const proposalsMatch = raw.match(
-    /^\d+\.\s+Proposals\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
+    /^\d+\.\s+Proposals[ \t]*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const proposals = proposalsMatch
     ? parseProposalsTable(proposalsMatch[1])
@@ -395,7 +394,7 @@ export async function getAgenda(
 
   // Find and parse Short Discussions
   const shortMatch = raw.match(
-    /^\d+\.\s+Short.*?Timeboxed Discussions\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
+    /^\d+\.\s+Short.*?Timeboxed Discussions[ \t]*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const shortDiscussions = shortMatch
     ? parseDiscussionTable(shortMatch[1])
@@ -403,7 +402,7 @@ export async function getAgenda(
 
   // Find and parse Longer Discussions
   const longMatch = raw.match(
-    /^\d+\.\s+Longer or open-ended discussions\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
+    /^\d+\.\s+Longer or open-ended discussions[ \t]*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const longDiscussions = longMatch
     ? parseDiscussionTable(longMatch[1])
