@@ -1,6 +1,6 @@
 # tc39-spec-mcp
 
-A remote [MCP](https://modelcontextprotocol.io/) server for searching and reading the [ECMA-262](https://tc39.es/ecma262/) specification, browsing active [TC39 proposals](https://github.com/tc39/proposals), searching [plenary meeting notes](https://github.com/tc39/notes), and finding existing [test262](https://github.com/tc39/test262) conformance tests.
+A remote [MCP](https://modelcontextprotocol.io/) server for searching and reading the [ECMA-262](https://tc39.es/ecma262/) specification, browsing active [TC39 proposals](https://github.com/tc39/proposals), searching [plenary meeting notes](https://github.com/tc39/notes), finding existing [test262](https://github.com/tc39/test262) conformance tests, and fetching [meeting agendas](https://github.com/tc39/agendas).
 
 Deployed as a stateless [Cloudflare Worker](https://developers.cloudflare.com/agents/guides/remote-mcp-server/) using the streamable-http transport.
 
@@ -81,6 +81,14 @@ Search the [tc39/test262](https://github.com/tc39/test262) conformance test suit
 - `query` (string, required) — Feature name, built-in, or method path (e.g. `"ArrayBuffer"`, `"TypedArray.prototype.slice"`, `"ArrayBuffer.prototype.transfer"`).
 - `limit` (number, optional) — Maximum results to return. Default: 20.
 
+### `get_agenda`
+
+Fetch and parse a TC39 plenary meeting agenda from the [tc39/agendas](https://github.com/tc39/agendas) repository. Returns all proposals with stage, timebox, advancement goals, supporting material links (slides, spec PRs, test262 PRs), and presenter. Also includes short/long discussions and schedule constraints.
+
+**Parameters:**
+
+- `meeting` (string, optional) — Meeting identifier in `YYYY/MM` format (e.g., `"2026/03"`). If omitted, returns the next upcoming meeting.
+
 ## Data Sources
 
 | Data | Source | Cache TTL |
@@ -91,6 +99,7 @@ Search the [tc39/test262](https://github.com/tc39/test262) conformance test suit
 | Proposal READMEs/spec text | Individual proposal GitHub repos | 1 hour |
 | Meeting notes | [github.com/tc39/notes](https://github.com/tc39/notes) meeting directories | 24h list, 7d past notes, 1h recent |
 | Test262 tests | [github.com/tc39/test262](https://github.com/tc39/test262) directory tree | 6 hours |
+| Meeting agendas | [github.com/tc39/agendas](https://github.com/tc39/agendas) markdown files | 15 minutes |
 
 ## Setup
 

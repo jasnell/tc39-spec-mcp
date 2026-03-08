@@ -12,6 +12,7 @@
  * - get_proposal: Fetch a proposal's README and optionally its spec text
  * - search_notes: Search TC39 plenary meeting notes
  * - search_test262: Search the test262 conformance test suite
+ * - get_agenda: Fetch and parse a TC39 meeting agenda
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -22,6 +23,7 @@ import { registerListProposals } from "./tools/list-proposals.js";
 import { registerGetProposal } from "./tools/get-proposal.js";
 import { registerSearchNotes } from "./tools/search-notes.js";
 import { registerSearchTest262 } from "./tools/search-test262.js";
+import { registerGetAgenda } from "./tools/get-agenda.js";
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -35,6 +37,7 @@ function createServer(): McpServer {
   registerGetProposal(server);
   registerSearchNotes(server);
   registerSearchTest262(server);
+  registerGetAgenda(server);
 
   return server;
 }
