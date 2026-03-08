@@ -1,6 +1,6 @@
 # tc39-spec-mcp
 
-A remote [MCP](https://modelcontextprotocol.io/) server for searching and reading the [ECMA-262](https://tc39.es/ecma262/) specification, browsing active [TC39 proposals](https://github.com/tc39/proposals), searching [plenary meeting notes](https://github.com/tc39/notes), finding existing [test262](https://github.com/tc39/test262) conformance tests, and fetching [meeting agendas](https://github.com/tc39/agendas).
+A remote [MCP](https://modelcontextprotocol.io/) server for searching and reading the [ECMA-262](https://tc39.es/ecma262/) specification, browsing active [TC39 proposals](https://github.com/tc39/proposals), searching [plenary meeting notes](https://github.com/tc39/notes), finding existing [test262](https://github.com/tc39/test262) conformance tests, fetching [meeting agendas](https://github.com/tc39/agendas), and looking up [TC39 delegates](https://github.com/tc39/notes/blob/main/delegates.txt).
 
 Deployed as a stateless [Cloudflare Worker](https://developers.cloudflare.com/agents/guides/remote-mcp-server/) using the streamable-http transport.
 
