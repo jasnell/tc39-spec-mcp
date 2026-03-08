@@ -89,6 +89,20 @@ Fetch and parse a TC39 plenary meeting agenda from the [tc39/agendas](https://gi
 
 - `meeting` (string, optional) — Meeting identifier in `YYYY/MM` format (e.g., `"2026/03"`). If omitted, returns the next upcoming meeting.
 
+### `lookup_delegate`
+
+Look up a TC39 delegate by name, TLA (three-letter abbreviation), or partial match. Returns the delegate's full name and TLA. Useful for resolving abbreviations found in meeting notes transcripts.
+
+**Parameters:**
+
+- `query` (string, required) — Delegate name, TLA, or partial match (e.g. `"KG"`, `"Kevin Gibbons"`, `"gibbons"`).
+
+**Example result:**
+
+```
+Found delegate: **Kevin Gibbons** (KG)
+```
+
 ## Data Sources
 
 | Data | Source | Cache TTL |
@@ -100,6 +114,7 @@ Fetch and parse a TC39 plenary meeting agenda from the [tc39/agendas](https://gi
 | Meeting notes | [github.com/tc39/notes](https://github.com/tc39/notes) meeting directories | 24h list, 7d past notes, 1h recent |
 | Test262 tests | [github.com/tc39/test262](https://github.com/tc39/test262) directory tree | 6 hours |
 | Meeting agendas | [github.com/tc39/agendas](https://github.com/tc39/agendas) markdown files | 15 minutes |
+| Delegates list | [github.com/tc39/notes](https://github.com/tc39/notes) `delegates.txt` | 24 hours |
 
 ## Setup
 

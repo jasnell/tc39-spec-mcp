@@ -13,6 +13,7 @@
  * - search_notes: Search TC39 plenary meeting notes
  * - search_test262: Search the test262 conformance test suite
  * - get_agenda: Fetch and parse a TC39 meeting agenda
+ * - lookup_delegate: Look up TC39 delegates by name or TLA
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -24,6 +25,7 @@ import { registerGetProposal } from "./tools/get-proposal.js";
 import { registerSearchNotes } from "./tools/search-notes.js";
 import { registerSearchTest262 } from "./tools/search-test262.js";
 import { registerGetAgenda } from "./tools/get-agenda.js";
+import { registerLookupDelegate } from "./tools/lookup-delegate.js";
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -38,6 +40,7 @@ function createServer(): McpServer {
   registerSearchNotes(server);
   registerSearchTest262(server);
   registerGetAgenda(server);
+  registerLookupDelegate(server);
 
   return server;
 }
