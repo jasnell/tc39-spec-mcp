@@ -10,6 +10,8 @@
  * - get_spec_section: Fetch a specific spec section as simplified markdown
  * - list_proposals: List TC39 proposals filtered by stage
  * - get_proposal: Fetch a proposal's README and optionally its spec text
+ * - search_notes: Search TC39 plenary meeting notes
+ * - search_test262: Search the test262 conformance test suite
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -18,6 +20,8 @@ import { registerSearchSpec } from "./tools/search-spec.js";
 import { registerGetSpecSection } from "./tools/get-section.js";
 import { registerListProposals } from "./tools/list-proposals.js";
 import { registerGetProposal } from "./tools/get-proposal.js";
+import { registerSearchNotes } from "./tools/search-notes.js";
+import { registerSearchTest262 } from "./tools/search-test262.js";
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -29,6 +33,8 @@ function createServer(): McpServer {
   registerGetSpecSection(server);
   registerListProposals(server);
   registerGetProposal(server);
+  registerSearchNotes(server);
+  registerSearchTest262(server);
 
   return server;
 }
