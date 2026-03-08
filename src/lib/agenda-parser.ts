@@ -145,25 +145,26 @@ function parseMeetingInfo(
     meeting.title = titleMatch[1].trim();
   }
 
-  // Host
+  // Host — matches both "**Host**: X" and "- **Host**: X"
   const hostMatch = markdown.match(
-    /^\*\*Host\*\*:\s*(.+)$/m,
+    /^-?\s*\*\*Host\*\*:\s*(.+)$/m,
   );
   if (hostMatch) {
     meeting.host = hostMatch[1].trim();
   }
 
-  // Location
+  // Location — matches both "**Location**: X" and "- **Location**: X"
   const locationMatch = markdown.match(
-    /^\*\*Location\*\*:\s*(.+)$/m,
+    /^-?\s*\*\*Location\*\*:\s*(.+)$/m,
   );
   if (locationMatch) {
     meeting.location = locationMatch[1].trim();
   }
 
-  // Dates — extract first date line
+  // Dates — the header may be "**Dates and times**:" or "- **Dates and times**:"
+  // followed by indented list items with individual day entries
   const datesMatch = markdown.match(
-    /^\*\*Dates and times\*\*:\s*\n([\s\S]*?)(?=^\*\*|\n\n)/m,
+    /^-?\s*\*\*Dates and times\*\*:\s*\n([\s\S]*?)(?=^-?\s*\*\*|\n\n)/m,
   );
   if (datesMatch) {
     const dateLines = datesMatch[1]
@@ -186,13 +187,10 @@ function parseProposalsTable(tableSection: string): AgendaProposal[] {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (
-      !trimmed.startsWith("|") ||
-      trimmed.includes("stage") ||
-      trimmed.includes("---")
-    ) {
-      continue;
-    }
+    if (!trimmed.startsWith("|")) continue;
+
+    // Skip separator rows (|:---:|...) and header rows (| stage | timebox |...)
+    if (/^[|\s:-]+$/.test(trimmed)) continue;
 
     const cells = trimmed
       .replace(/^\|/, "")
@@ -207,7 +205,7 @@ function parseProposalsTable(tableSection: string): AgendaProposal[] {
     const topicRaw = cells[2].trim();
     const presenter = cells[3].trim();
 
-    // Skip header-like rows
+    // Skip header rows where the first cell is literally "stage"
     if (stage === "stage" || !stage) continue;
 
     // Parse the topic cell
@@ -384,9 +382,12 @@ export async function getAgenda(
   const raw = await fetchAgendaRaw(id);
   const meeting = parseMeetingInfo(raw, id);
 
-  // Find and parse the Proposals section
+  // Find and parse the Proposals section.
+  // Capture everything after "N. Proposals" until the next top-level numbered item.
+  // Note: /m makes ^ match start-of-line, but also makes $ match end-of-line,
+  // so we must NOT use $ as a fallback — it would match immediately with [\s\S]*?.
   const proposalsMatch = raw.match(
-    /^\d+\.\s+Proposals\s*\n([\s\S]*?)(?=^\d+\.\s+(?:Longer|Overflow|Other)|$)/m,
+    /^\d+\.\s+Proposals\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const proposals = proposalsMatch
     ? parseProposalsTable(proposalsMatch[1])
@@ -394,7 +395,7 @@ export async function getAgenda(
 
   // Find and parse Short Discussions
   const shortMatch = raw.match(
-    /Short.*?Timeboxed Discussions\s*\n([\s\S]*?)(?=^\d+\.\s+Proposals|$)/m,
+    /^\d+\.\s+Short.*?Timeboxed Discussions\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const shortDiscussions = shortMatch
     ? parseDiscussionTable(shortMatch[1])
@@ -402,7 +403,7 @@ export async function getAgenda(
 
   // Find and parse Longer Discussions
   const longMatch = raw.match(
-    /Longer or open-ended discussions\s*\n([\s\S]*?)(?=^\d+\.\s+Overflow|$)/m,
+    /^\d+\.\s+Longer or open-ended discussions\s*\n([\s\S]*?)(?=^\d+\.\s+\S)/m,
   );
   const longDiscussions = longMatch
     ? parseDiscussionTable(longMatch[1])
